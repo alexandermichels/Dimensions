@@ -18,9 +18,6 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Created by alex on 2/7/18.
- */
 
 public class Database implements Serializable
 {
@@ -51,9 +48,9 @@ public class Database implements Serializable
         instance = this;
     }
 
-    public void populateDatabase()
+    private void populateDatabase()
     {
-        String [] dims = { "m", "in", "ft", "yd", "mi", "ly", "s", "min", "hr", "day", "wk", "fortnight", "j", "eV", "btu", "boe", "w", "hp", "j/s", "g", "slug", "N", "lb", "m^3", "li", "oz", "gallon", "pint", "hoppus", "ft^2", "m^2", "acre", "hectacre" };
+        String [] dims = { "m", "in", "ft", "yd", "mi", "ly", "s", "min", "hr", "day", "wk", "fortnight", "j", "eV", "btu", "boe", "w", "hp", "j/s", "g", "slug", "N", "lb", "oz", "m^3", "li", "gallon", "pint", "hoppus", "ft^2", "m^2", "acre", "hectacre" };
         boolean [] m_or_no = {true, false, false, false, false, false, true, false, false, false, false, false, true, true, false, false, true, false, true, true, false, true, false, false, true, true, false, false, false, false, true, false, false };
         String [] ds = { "Length", "Time", "Energy", "Power", "Mass", "Force", "Volume", "Area"};
         int [] nDims = { 6, 12, 16, 19, 21, 24, 29, 34 };
@@ -84,7 +81,7 @@ public class Database implements Serializable
         return instance;
     }
 
-    public static void load(File f) throws IOException, ClassNotFoundException
+    static void load(File f) throws IOException, ClassNotFoundException
     {
         FileInputStream fileInputStream = new FileInputStream(f);
         ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
@@ -106,7 +103,7 @@ public class Database implements Serializable
         fileOutputStream.close();
     }
 
-    public static String getDatabaseFile()
+    static String getDatabaseFile()
     {
         return DATABASE_FILE;
     }
@@ -116,7 +113,7 @@ public class Database implements Serializable
         return getInstance().numDims;
     }
 
-    public static int getNumDims(String key)
+    static int getNumDims(String key)
     {
         return getInstance().numDims.get(key);
     }
@@ -126,17 +123,17 @@ public class Database implements Serializable
         return getInstance().dimensions;
     }
 
-    public static int getDimensionsSize()
+    static int getDimensionsSize()
     {
         return getInstance().dimensions.size();
     }
 
-    public static String getDimension(int i)
+    static String getDimension(int i)
     {
         return getDimensions().get(i);
     }
 
-    public ArrayList<String> getDimensionList(boolean metrics)
+    ArrayList<String> getDimensionList(boolean metrics)
     {
         if (!metrics)
         {
@@ -149,9 +146,9 @@ public class Database implements Serializable
             {
                 if (isMetric(getDimension(i)))
                 {
-                    for (int j = 0; j < metricMods.length; j++)
+                    for (String s : metricMods)
                     {
-                        list.add(metricMods[j] + getDimension(i));
+                        list.add(s + getDimension(i));
                     }
                 }
                 else
@@ -164,12 +161,12 @@ public class Database implements Serializable
         }
     }
 
-    public static HashMap<String, Double> getConversionRates ()
+    private static HashMap<String, Double> getConversionRates ()
     {
         return getInstance().conversionRates;
     }
 
-    public static double getConversionRate(String key)
+    static double getConversionRate(String key)
     {
         if (getConversionRates().get(key) != null)
         {
@@ -186,17 +183,17 @@ public class Database implements Serializable
         return 1;
     }
 
-    public static HashMap<String, Double> getMetrics ()
+    private static HashMap<String, Double> getMetrics ()
     {
         return getInstance().metrics;
     }
 
-    public static double getMetric(String key)
+    private static double getMetric(String key)
     {
         return getMetrics().get(key);
     }
 
-    public static boolean isMetric(String key)
+    private static boolean isMetric(String key)
     {
         if (Database.getInstance().isMetric.get(key) != null)
         {
@@ -215,7 +212,7 @@ public class Database implements Serializable
         }
     }
 
-    public ArrayList<String> getDimensionsOfSameType(String key)
+    ArrayList<String> getDimensionsOfSameType(String key)
     {
         Dimension key_dimension = Dimension.makeDimension(key, 0);
         String type = key_dimension.getType();
@@ -224,21 +221,21 @@ public class Database implements Serializable
         {
             Dimension tmp = Dimension.makeDimension(getDimension(h),0);
             Log.d("Database: ",tmp.getType() + "  is of the same type as  " + type + " : " + tmp.getType().equalsIgnoreCase(type) + "");
-            if (tmp.getType().equalsIgnoreCase(type))
+            if (tmp.getType().equals(type))
             {
-                    if (isMetric(getDimension(h)))
+                if (isMetric(getDimension(h)))
+                {
+                    for (String s : metricMods)
                     {
-                        for (int j = 0; j < metricMods.length; j++)
-                        {
-                            list.add(metricMods[j] + getDimension(h));
-                            Log.d("Database: ", "added " + metricMods[j] + getDimension(h) + " to getDimensionsOfSameType(" + key + ")");
-                        }
-                    } else
-                    {
-                        list.add(getDimension(h));
-                        Log.d("Database: ", "added "  + getDimension(h) + " to getDimensionsOfSameType(" + key + ")");
+                        list.add(s + getDimension(h));
+                        Log.d("Database: ", "added " + s + getDimension(h) + " to getDimensionsOfSameType(" + key + ")");
                     }
-
+                }
+                else
+                {
+                    list.add(getDimension(h));
+                    Log.d("Database: ", "added "  + getDimension(h) + " to getDimensionsOfSameType(" + key + ")");
+                }
             }
         }
         return list;

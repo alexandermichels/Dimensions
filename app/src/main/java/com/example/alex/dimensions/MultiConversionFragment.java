@@ -1,6 +1,7 @@
 package com.example.alex.dimensions;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -22,9 +23,6 @@ import android.widget.TextView;
 import java.io.File;
 import java.util.ArrayList;
 
-/**
- * Created by alex on 3/13/18.
- */
 
 public class MultiConversionFragment extends Fragment
 {
@@ -86,25 +84,26 @@ public class MultiConversionFragment extends Fragment
 
         sameDimList = Database.getInstance().getDimensionsOfSameType(dimension);
 
-        mRecyclerView = (RecyclerView) v.findViewById(R.id.recycler_view);
+        mRecyclerView = v.findViewById(R.id.recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         spinner_1 = v.findViewById(R.id.spinner_1);
-        spinner_1 = (Spinner) v.findViewById(R.id.spinner_1);
+        spinner_1 = v.findViewById(R.id.spinner_1);
         spinner_1.setOnItemSelectedListener(new MultiConversionFragment.Spinner1Listener());
-        mStringArrayAdapter1 = new ArrayAdapter<String>(this.getContext(), R.layout.spinner_textview, Database.getDimensions());
+        mStringArrayAdapter1 = new ArrayAdapter<>(this.getContext(), R.layout.spinner_textview, Database.getInstance().getDimensionList(true));
         mStringArrayAdapter1.setDropDownViewResource(R.layout.spinner_textview);
         spinner_1.setAdapter(mStringArrayAdapter1);
         setSpinner1(dimension);
 
         mEditText = v.findViewById(R.id.number_input);
-        if (edit_text_string != null)
+        if (!(edit_text_string == null || edit_text_string.equals("")))
         {
             mEditText.setText(edit_text_string);
         }
         else if (value != 0)
         {
-            mEditText.setText(value+"");
+            String s = value+"";
+            mEditText.setText(s);
         }
 
         mEditText.addTextChangedListener(new TextWatcher() {
@@ -131,22 +130,23 @@ public class MultiConversionFragment extends Fragment
         return v;
     }
 
-    public class DimensionHolder extends RecyclerView.ViewHolder
+    class DimensionHolder extends RecyclerView.ViewHolder
     {
         private TextView mTextView;
         private int mIndex;
-        ArrayList<String> list;
 
-        public DimensionHolder (LayoutInflater inflater, ViewGroup parent, ArrayList<String> list)
+        DimensionHolder (LayoutInflater inflater, ViewGroup parent)
         {
             super(inflater.inflate(R.layout.spinner_textview, parent, false));
             mTextView = itemView.findViewById(R.id.webpage);
         }
 
-        public void bind(int index)
+        void bind(int index)
         {
-            Dimension d = Dimension.makeDimension(sameDimList.get(index), Convert.value(value).from(dimension).to(Database.getDimension(index)));
-            mTextView.setText(d.getMagnitude() + " " + sameDimList.get(index));
+            mIndex = index;
+            double d = Convert.value(value).from(dimension).to(sameDimList.get(mIndex));
+            String s = d + " " + sameDimList.get(mIndex);
+            mTextView.setText(s);
         }
 
     }
@@ -164,7 +164,7 @@ public class MultiConversionFragment extends Fragment
         public DimensionHolder onCreateViewHolder (ViewGroup parent, int viewType)
         {
             LayoutInflater inflater = LayoutInflater.from(getActivity());
-            return new DimensionHolder(inflater, parent, sameDimList);
+            return new DimensionHolder(inflater, parent);
         }
 
         @Override
@@ -180,7 +180,9 @@ public class MultiConversionFragment extends Fragment
         }
     }
 
-    private void updateUI() {
+    private void updateUI()
+    {
+        sameDimList = Database.getInstance().getDimensionsOfSameType(dimension);
         if (mDimensionAdapter == null) {
             mDimensionAdapter = new DimensionAdapter();
             mRecyclerView.setAdapter(mDimensionAdapter);
@@ -194,9 +196,8 @@ public class MultiConversionFragment extends Fragment
         @Override
         public void onItemSelected (AdapterView<?> adapterView, View view, int i, long l)
         {
-            spinner_1_choice = (String)adapterView.getItemAtPosition(i);
+            dimension = (String)adapterView.getItemAtPosition(i);
             Log.d("MultConversionFragment", "onItemSelected");
-            sameDimList = Database.getInstance().getDimensionsOfSameType(spinner_1_choice);
             updateUI();
         }
 
